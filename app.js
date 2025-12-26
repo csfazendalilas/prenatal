@@ -744,12 +744,29 @@ function renderMonitoramentoTable(gestantes = allGestantes) {
         </td>
         <td class="px-3 py-3">${g.ultimo_atendimento_por || '-'}</td>
         <td class="px-3 py-3">
-          <button 
-            onclick="event.stopPropagation(); openConsultaForGestante('${g.id_gestante}')" 
-            class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs"
-          >
-            Consulta
-          </button>
+          <div class="flex gap-1">
+            <button 
+              onclick="event.stopPropagation(); openConsultaForGestante('${g.id_gestante}')" 
+              class="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs"
+              title="Nova Consulta"
+            >
+              🩺
+            </button>
+            <button 
+              onclick="event.stopPropagation(); editGestante('${g.id_gestante}')" 
+              class="px-2 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700 text-xs"
+              title="Editar Dados"
+            >
+              ✏️
+            </button>
+            <button 
+              onclick="event.stopPropagation(); deleteGestanteConfirm('${g.id_gestante}', '${g.nome}')" 
+              class="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-xs"
+              title="Deletar"
+            >
+              🗑️
+            </button>
+          </div>
         </td>
       </tr>
     `;
@@ -798,5 +815,92 @@ async function openConsultaForGestante(idGestante) {
     }
   } catch (error) {
     showToast('Erro ao carregar dados da gestante', 'error');
+  }
+}
+
+// Editar gestante
+async function editGestante(idGestante) {
+  try {
+    showLoading();
+    const result = await apiCall({ action: 'getGestante', id: idGestante });
+    hideLoading();
+    
+    if (result.ok) {
+      const g = result.data;
+      document.getElementById('edit-id-gestante').value = g.id_gestante;
+      document.getElementById('edit-nome').value = g.nome || '';
+      document.getElementById('edit-dn').value = g.dn || '';
+      document.getElementById('edit-telefone').value = g.telefone || '';
+      document.getElementById('edit-dum').value = g.dum || '';
+      document.getElementById('edit-dpp-usg').value = g.dpp_usg || '';
+      document.getElementById('edit-risco').value = g.risco || 'HABITUAL';
+      document.getElementById('edit-observacoes').value = g.observacoes || '';
+      
+      document.getElementById('edit-modal').classList.remove('hidden');
+    }
+  } catch (error) {
+    hideLoading();
+    showToast('Erro ao carregar dados da gestante', 'error');
+  }
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal').classList.add('hidden');
+}
+
+async function submitEditGestante(event) {
+  event.preventDefault();
+  
+  const id = document.getElementById('edit-id-gestante').value;
+  const data = {
+    action: 'updateGestante',
+    id: id,
+    nome: document.getElementById('edit-nome').value,
+    dn: document.getElementById('edit-dn').value,
+    telefone: document.getElementById('edit-telefone').value,
+    dum: document.getElementById('edit-dum').value,
+    dpp_usg: document.getElementById('edit-dpp-usg').value,
+    risco: document.getElementById('edit-risco').value,
+    observacoes: document.getElementById('edit-observacoes').value
+  };
+  
+  try {
+    showLoading();
+    const result = await apiCall(data);
+    hideLoading();
+    
+    if (result.ok) {
+      showToast('Dados atualizados com sucesso!', 'success');
+      closeEditModal();
+      await loadAllGestantes(); // Recarregar lista
+    } else {
+      showToast(result.error || 'Erro ao atualizar', 'error');
+    }
+  } catch (error) {
+    hideLoading();
+    showToast('Erro ao atualizar dados', 'error');
+  }
+}
+
+// Deletar gestante com confirmação
+async function deleteGestanteConfirm(idGestante, nome) {
+  if (!confirm(`⚠️ ATENÇÃO!\n\nTem certeza que deseja DELETAR a gestante:\n\n"${nome}" (${idGestante})?\n\nEsta ação irá:\n- Remover a gestante\n- Deletar TODAS as consultas\n- Remover do monitoramento\n\nEsta ação NÃO PODE ser desfeita!`)) {
+    return;
+  }
+  
+  try {
+    showLoading();
+    const result = await apiCall({ action: 'deleteGestante', id: idGestante });
+    hideLoading();
+    
+    if (result.ok) {
+      showToast('Gestante deletada com sucesso', 'success');
+      await loadAllGestantes(); // Recarregar lista
+    } else {
+      showToast(result.error || 'Erro ao deletar', 'error');
+    }
+  } catch (error) {
+    hideLoading();
+    showToast('Erro ao deletar gestante', 'error');
   }
 }

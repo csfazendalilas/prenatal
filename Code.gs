@@ -321,6 +321,105 @@ function createGestante(payload) {
   };
 }
 
+// Atualizar dados cadastrais de uma gestante
+function updateGestante(idGestante, payload) {
+  const sheet = getSheet('Gestantes');
+  const data = sheet.getDataRange().getValues();
+  
+  // Encontrar a linha da gestante
+  let rowIndex = -1;
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === idGestante) {
+      rowIndex = i + 1; // +1 porque sheet é 1-indexed
+      break;
+    }
+  }
+  
+  if (rowIndex === -1) {
+    throw new Error('Gestante não encontrada');
+  }
+  
+  // Atualizar campos (mantém os que não foram enviados)
+  const nome = payload.nome || data[rowIndex-1][1];
+  const dn = payload.dn ? parseDateBR(payload.dn) : data[rowIndex-1][2];
+  const telefone = payload.telefone !== undefined ? payload.telefone : data[rowIndex-1][3];
+  const dum = payload.dum ? parseDateBR(payload.dum) : data[rowIndex-1][4];
+  const dppUsg = payload.dpp_usg ? parseDateBR(payload.dpp_usg) : data[rowIndex-1][5];
+  const risco = payload.risco || data[rowIndex-1][6];
+  const observacoes = payload.observacoes !== undefined ? payload.observacoes : data[rowIndex-1][7];
+  const now = new Date();
+  
+  sheet.getRange(rowIndex, 1, 1, 10).setValues([[
+    idGestante,
+    nome,
+    dn,
+    telefone,
+    dum,
+    dppUsg,
+    risco,
+    observacoes,
+    data[rowIndex-1][8], // created_at (mantém)
+    now // updated_at
+  ]]);
+  
+  logAction('UPDATE_GESTANTE', idGestante, '', `Nome: ${nome}`);
+  
+  return {
+    id_gestante: idGestante,
+    nome: nome,
+    dn: formatDateBR(dn),
+    telefone: telefone,
+    dum: formatDateBR(dum),
+    dpp_usg: formatDateBR(dppUsg),
+    risco: risco,
+    observacoes: observacoes
+  };
+}
+
+// Deletar uma gestante
+function deleteGestante(idGestante) {
+  const sheetGestantes = getSheet('Gestantes');
+  const dataGestantes = sheetGestantes.getDataRange().getValues();
+  
+  // Encontrar a linha da gestante
+  let rowIndex = -1;
+  for (let i = 1; i < dataGestantes.length; i++) {
+    if (dataGestantes[i][0] === idGestante) {
+      rowIndex = i + 1;
+      break;
+    }
+  }
+  
+  if (rowIndex === -1) {
+    throw new Error('Gestante não encontrada');
+  }
+  
+  // Deletar da aba Gestantes
+  sheetGestantes.deleteRow(rowIndex);
+  
+  // Deletar consultas relacionadas
+  const sheetConsultas = getSheet('ConsultasPN');
+  const dataConsultas = sheetConsultas.getDataRange().getValues();
+  for (let i = dataConsultas.length - 1; i >= 1; i--) {
+    if (dataConsultas[i][1] === idGestante) { // coluna id_gestante
+      sheetConsultas.deleteRow(i + 1);
+    }
+  }
+  
+  // Deletar do monitoramento
+  const sheetMonit = getSheet('MonitoramentoPN');
+  const dataMonit = sheetMonit.getDataRange().getValues();
+  for (let i = dataMonit.length - 1; i >= 1; i--) {
+    if (dataMonit[i][dataMonit[i].length - 1] === idGestante) { // última coluna = id_gestante
+      sheetMonit.deleteRow(i + 1);
+    }
+  }
+  
+  logAction('DELETE_GESTANTE', idGestante, '', `Gestante deletada`);
+  
+  return true;
+}
+
 // ========================================
 // CONSULTAS
 // ========================================
@@ -895,6 +994,24 @@ function handleRequest(e) {
     if (action === 'createGestante') {
       const result = createGestante(params);
       return jsonResponse({ ok: true, data: result });
+    }
+    
+    if (action === 'updateGestante') {
+      const id = params.id;
+      if (!id) {
+        return jsonResponse({ ok: false, error: 'ID obrigatório' });
+      }
+      const result = updateGestante(id, params);
+      return jsonResponse({ ok: true, data: result });
+    }
+    
+    if (action === 'deleteGestante') {
+      const id = params.id;
+      if (!id) {
+        return jsonResponse({ ok: false, error: 'ID obrigatório' });
+      }
+      const result = deleteGestante(id);
+      return jsonResponse({ ok: true, message: 'Gestante deletada com sucesso' });
     }
     
     if (action === 'saveConsulta') {
