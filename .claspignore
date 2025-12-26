@@ -1,14 +1,16 @@
-# Ignorar frontend
-frontend/
-**/frontend/**
-
 # Ignorar arquivos de documentação
 README.md
 SETUP_PASSO_A_PASSO.md
+GITHUB_PAGES_SETUP.md
 *.md
 
 # Ignorar arquivos de código duplicado
 Código.js
+
+# Ignorar arquivos do frontend (HTML/JS)
+index.html
+app.js
+config.js
 
 # Ignorar arquivos de configuração do clasp (já estão no projeto)
 .clasp.json
