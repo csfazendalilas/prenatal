@@ -627,18 +627,28 @@
     <!-- Tab Content: Consulta de Seguimento -->
     <div id="content-seguimento" class="tab-content hidden">
       <div class="bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-xl font-semibold mb-4">Consulta de Seguimento</h2>
         
-        <!-- Resumo da Gestante -->
-        <div id="resumo-gestante-seguimento" class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md hidden">
-          <h3 class="font-semibold text-blue-900 mb-2">Gestante Selecionada</h3>
-          <div id="resumo-content-seguimento" class="text-sm text-gray-700"></div>
-        </div>
-
-        <!-- Checklist e Orientações por IG -->
-        <div id="orientacoes-seguimento" class="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md hidden">
-          <h3 class="font-semibold text-yellow-900 mb-2">📋 Checklist e Orientações (por IG)</h3>
-          <div id="checklist-content-seguimento" class="text-sm space-y-2"></div>
+        <!-- Cabeçalho com dados da gestante -->
+        <div class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-blue-100 border-l-4 border-blue-600 rounded-lg">
+          <h2 class="text-2xl font-bold text-blue-900 mb-2" id="consulta-nome-gestante">Selecione uma gestante</h2>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div>
+              <span class="text-gray-600">ID:</span>
+              <span class="font-semibold ml-1" id="consulta-id-display">-</span>
+            </div>
+            <div>
+              <span class="text-gray-600">IG Atual:</span>
+              <span class="font-semibold ml-1" id="consulta-ig-atual">-</span>
+            </div>
+            <div>
+              <span class="text-gray-600">DPP (USG):</span>
+              <span class="font-semibold ml-1" id="consulta-dpp">-</span>
+            </div>
+            <div>
+              <span class="text-gray-600">Risco:</span>
+              <span class="font-semibold ml-1" id="consulta-risco">-</span>
+            </div>
+          </div>
         </div>
 
         <!-- Pendências -->
@@ -651,7 +661,8 @@
           <input type="hidden" name="id_gestante" id="seguimento-id-gestante">
           <input type="hidden" name="tipo_consulta" value="SEGUIMENTO">
           
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Dados Básicos -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Data da Consulta *</label>
               <input 
@@ -671,17 +682,17 @@
                 type="text" 
                 name="profissional" 
                 required 
+                placeholder="Nome do profissional"
                 class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
               >
             </div>
             
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Profissional *</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Tipo *</label>
               <select 
                 name="tipo_profissional" 
                 required
                 class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                onchange="updateOrientacoes()"
               >
                 <option value="MEDICO">Médico</option>
                 <option value="ENFERMEIRA">Enfermeira</option>
@@ -689,37 +700,71 @@
             </div>
           </div>
 
-          <!-- Exame Físico -->
+          <!-- Medicamentos em Uso -->
           <div class="border-t pt-4">
-            <h3 class="font-semibold text-gray-900 mb-4">Exame Físico</h3>
+            <h3 class="font-semibold text-gray-900 mb-3">💊 Medicamentos em Uso</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <label class="flex items-center space-x-2 text-sm">
+                <input type="checkbox" name="med_calcio" value="sim" class="rounded">
+                <span>Cálcio (dose habitual uso diário)</span>
+              </label>
+              <label class="flex items-center space-x-2 text-sm">
+                <input type="checkbox" name="med_sulfato_ferroso" value="sim" class="rounded">
+                <span>Sulfato Ferroso (dose habitual uso diário)</span>
+              </label>
+              <label class="flex items-center space-x-2 text-sm">
+                <input type="checkbox" name="med_acido_folico" value="sim" class="rounded">
+                <span>Ácido Fólico</span>
+              </label>
+              <label class="flex items-center space-x-2 text-sm">
+                <input type="checkbox" name="med_aas" value="sim" class="rounded">
+                <span>AAS</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- S - SUBJETIVO -->
+          <div class="border-t pt-4">
+            <h3 class="font-semibold text-gray-900 mb-3 text-lg">📝 S. (Subjetivo)</h3>
+            <textarea 
+              name="subjetivo" 
+              rows="4"
+              placeholder="Ex: Gestante G2P1nA0, comparece hoje para 10ª consulta de pré-natal. Refere estar bem, nega queixas no momento. Nega contrações regulares, nega dor abdominal contínua, nega perda de líquido, sangramento vaginal ou corrimento anormal. Nega disúria, polaciúria ou outros sintomas urinários. Refere movimentação fetal presente e diária. Nega cefaleia, escotomas, epigastralgia ou outros sinais de alarme."
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+            ></textarea>
+          </div>
+
+          <!-- O - OBJETIVO (Exame Físico) -->
+          <div class="border-t pt-4">
+            <h3 class="font-semibold text-gray-900 mb-3 text-lg">🩺 O. (Objetivo - Exame Físico)</h3>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="mb-3">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Estado Geral</label>
+              <input 
+                type="text" 
+                name="estado_geral" 
+                placeholder="Ex: BEG LOC MUC AAA, Corada hidratada eupneica"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              >
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">PA</label>
                 <input 
                   type="text" 
                   name="pa" 
-                  placeholder="120x80"
+                  placeholder="121x75"
                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                 >
               </div>
               
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Peso (kg)</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">FC (bpm)</label>
                 <input 
                   type="text" 
-                  name="peso" 
-                  placeholder="65.5"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                >
-              </div>
-              
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">AU (cm)</label>
-                <input 
-                  type="text" 
-                  name="au" 
-                  placeholder="32"
+                  name="fc" 
+                  placeholder="78"
                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                 >
               </div>
@@ -729,82 +774,81 @@
                 <input 
                   type="text" 
                   name="bcf" 
-                  placeholder="140"
+                  placeholder="138"
                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                 >
               </div>
               
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Edema</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">AU (cm)</label>
+                <input 
+                  type="text" 
+                  name="au" 
+                  placeholder="35"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                >
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Peso (kg)</label>
+                <input 
+                  type="text" 
+                  name="peso" 
+                  placeholder="77.8"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                >
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Edema MMII</label>
                 <select 
                   name="edema" 
                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">Selecione...</option>
                   <option value="Ausente">Ausente</option>
-                  <option value="Leve">Leve</option>
-                  <option value="Moderado">Moderado</option>
-                  <option value="Acentuado">Acentuado</option>
+                  <option value="Presente">Presente</option>
                 </select>
               </div>
             </div>
-          </div>
-
-          <!-- Queixas e Sinais de Alerta -->
-          <div class="border-t pt-4">
-            <h3 class="font-semibold text-gray-900 mb-4">Queixas e Sinais de Alerta</h3>
             
-            <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-700 mb-1">Queixas/Intercorrências</label>
-              <textarea 
-                name="queixas" 
-                rows="3"
-                placeholder="Descreva as queixas da gestante"
-                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-              ></textarea>
-            </div>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Sinais de Alerta</label>
-              <textarea 
-                name="sinais_alerta" 
-                rows="2"
-                placeholder="Sangramento, perda de líquido, dor abdominal, febre, etc."
-                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-              ></textarea>
-            </div>
-          </div>
-
-          <!-- Condutas -->
-          <div class="border-t pt-4">
-            <h3 class="font-semibold text-gray-900 mb-4">Condutas</h3>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Condutas/Orientações</label>
-              <textarea 
-                name="condutas" 
-                rows="4"
-                placeholder="Solicitações, orientações, encaminhamentos..."
-                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-              ></textarea>
-            </div>
-            
-            <div class="mt-4">
-              <label class="block text-sm font-medium text-gray-700 mb-1">Flags/Alertas</label>
+            <div class="mt-3">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Exames (resumo)</label>
               <input 
                 type="text" 
-                name="flags" 
-                placeholder="Ex: HAS, DM, Anemia"
+                name="exames_resumo" 
+                placeholder="Ex: VDRL, HIV, HBsAg não reagentes no terceiro trimestre, toxoplasmose imune, tipagem O positivo, PNRH"
                 class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
               >
             </div>
           </div>
+
+          <!-- A - AVALIAÇÃO -->
+          <div class="border-t pt-4">
+            <h3 class="font-semibold text-gray-900 mb-3 text-lg">🔍 A. (Avaliação)</h3>
+            <textarea 
+              name="avaliacao" 
+              rows="3"
+              placeholder="Ex: Gestação tópica única a termo&#10;Gestante de risco habitual"
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+            ></textarea>
+          </div>
+
+          <!-- P - PLANO -->
+          <div class="border-t pt-4">
+            <h3 class="font-semibold text-gray-900 mb-3 text-lg">📋 P. (Plano/Condutas)</h3>
+            <textarea 
+              name="plano" 
+              rows="4"
+              placeholder="Ex: -Oriento sinais de trabalho de parto e sinais de alarme materno-fetais&#10;-Oriento procurar maternidade de referência em caso de início de TP, perda de líquido ou redução de movimentos fetais&#10;-Programo retorno semanal ou antes se intercorrências (agenda recesso 02/01/2026 às 9h)"
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+            ></textarea>
+          </div>
           
           <button 
             type="submit" 
-            class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition font-medium"
+            class="w-full px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition font-semibold text-lg"
           >
-            Salvar Consulta de Seguimento
+            💾 Salvar Consulta e Gerar Texto
           </button>
         </form>
 
