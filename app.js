@@ -210,9 +210,14 @@ function switchTab(tabName) {
     }
   });
   
+  // Recarregar gestantes ao voltar para monitoramento
+  if (tabName === 'buscar') {
+    loadAllGestantes();
+  }
+  
   // Se mudou para consulta sem gestante selecionada, alertar
-  if ((tabName === 'abertura' || tabName === 'seguimento') && !selectedGestante) {
-    showToast('Selecione uma gestante na aba Buscar primeiro', 'error');
+  if ((tabName === 'abertura' || tabName === 'seguimento') && !currentGestante) {
+    showToast('Selecione uma gestante primeiro', 'error');
     switchTab('buscar');
   }
 }
@@ -807,15 +812,45 @@ function sortMonitoramento() {
 // Abrir consulta para uma gestante específica
 async function openConsultaForGestante(idGestante) {
   try {
+    showLoading();
     const result = await apiCall({ action: 'getGestante', id: idGestante });
+    hideLoading();
+    
     if (result.ok) {
       currentGestante = result.data;
-      switchTab('seguimento');
       fillConsultaWithGestanteData();
+      switchTab('seguimento');
+      showToast('Gestante carregada: ' + currentGestante.nome, 'success');
+    } else {
+      showToast(result.error || 'Erro ao carregar gestante', 'error');
     }
   } catch (error) {
+    hideLoading();
+    console.error('Erro ao carregar gestante:', error);
     showToast('Erro ao carregar dados da gestante', 'error');
   }
+}
+
+// Preencher dados da gestante no formulário de consulta
+function fillConsultaWithGestanteData() {
+  if (!currentGestante) return;
+  
+  // Preencher cabeçalho
+  document.getElementById('consulta-nome-gestante').textContent = currentGestante.nome;
+  document.getElementById('consulta-id-display').textContent = currentGestante.id_gestante;
+  document.getElementById('consulta-dpp').textContent = currentGestante.dpp_usg || '-';
+  document.getElementById('consulta-risco').textContent = currentGestante.risco || 'Habitual';
+  
+  // Calcular e mostrar IG atual
+  if (currentGestante.dum) {
+    const ig = calculateIGFromDUM(currentGestante.dum);
+    document.getElementById('consulta-ig-atual').textContent = ig.formatted || '-';
+  } else {
+    document.getElementById('consulta-ig-atual').textContent = '-';
+  }
+  
+  // Preencher campo hidden do form
+  document.getElementById('seguimento-id-gestante').value = currentGestante.id_gestante;
 }
 
 // Editar gestante
