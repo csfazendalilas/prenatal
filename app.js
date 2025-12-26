@@ -95,10 +95,76 @@ function parseDateBR(dateStr) {
 }
 
 // ========================================
+// AUTENTICAÇÃO
+// ========================================
+function getToken() {
+  return localStorage.getItem('auth_token');
+}
+
+function setToken(token) {
+  localStorage.setItem('auth_token', token);
+}
+
+function clearToken() {
+  localStorage.removeItem('auth_token');
+}
+
+function isLoggedIn() {
+  return !!getToken();
+}
+
+async function handleLogin(event) {
+  event.preventDefault();
+  
+  const username = document.getElementById('login-username').value;
+  const password = document.getElementById('login-password').value;
+  const errorEl = document.getElementById('login-error');
+  
+  try {
+    const result = await apiCall({ action: 'login', username, password });
+    
+    if (result.ok) {
+      setToken(result.token);
+      hideLoginScreen();
+      await loadAllGestantes();
+      showToast('Login realizado com sucesso!', 'success');
+    } else {
+      errorEl.textContent = result.error;
+      errorEl.classList.remove('hidden');
+    }
+  } catch (error) {
+    errorEl.textContent = 'Erro ao fazer login. Tente novamente.';
+    errorEl.classList.remove('hidden');
+  }
+}
+
+function handleLogout() {
+  clearToken();
+  showLoginScreen();
+  showToast('Logout realizado', 'info');
+}
+
+function showLoginScreen() {
+  document.getElementById('login-screen').classList.remove('hidden');
+}
+
+function hideLoginScreen() {
+  document.getElementById('login-screen').classList.add('hidden');
+}
+
+// ========================================
 // API CALLS (URLSearchParams para evitar CORS preflight)
 // ========================================
 async function apiCall(params) {
   try {
+    // Adicionar token em todas as requisições (exceto login e health)
+    if (params.action !== 'login' && params.action !== 'health') {
+      const token = getToken();
+      if (token) {
+        params.token = token;
+      }
+    }
+    
     const urlParams = new URLSearchParams(params);
     
     const response = await fetch(API_URL, {
@@ -111,6 +177,13 @@ async function apiCall(params) {
     }
     
     const data = await response.json();
+    
+    // Se retornar erro de autenticação, fazer logout
+    if (data.needsAuth && params.action !== 'login') {
+      clearToken();
+      showLoginScreen();
+    }
+    
     return data;
     
   } catch (error) {
@@ -556,34 +629,6 @@ function copyCelk(tipoConsulta) {
 }
 
 // ========================================
-// AUTENTICAÇÃO
-// ========================================
-function showAuthModal(errorMessage) {
-  const modal = document.getElementById('auth-modal');
-  const errorEl = document.getElementById('auth-error-message');
-  if (errorMessage) {
-    errorEl.textContent = errorMessage;
-  }
-  modal.classList.remove('hidden');
-}
-
-function hideAuthModal() {
-  const modal = document.getElementById('auth-modal');
-  modal.classList.add('hidden');
-}
-
-function openApiInNewTab() {
-  // Abre a API em nova aba para forçar login do Google
-  window.open(API_URL + '?action=health', '_blank');
-  showToast('Faça login na nova aba e depois clique em "Tentar Novamente"', 'info');
-}
-
-function retryAuth() {
-  hideAuthModal();
-  window.location.reload();
-}
-
-// ========================================
 // INICIALIZAÇÃO
 // ========================================
 window.addEventListener('DOMContentLoaded', async () => {
@@ -592,6 +637,12 @@ window.addEventListener('DOMContentLoaded', async () => {
     const healthCheck = await apiCall({ action: 'health' });
     if (healthCheck.ok) {
       console.log('✅ API Online:', healthCheck.message);
+    }
+    
+    // Verificar se está logado
+    if (!isLoggedIn()) {
+      showLoginScreen();
+      return;
     }
     
     // Carregar lista de gestantes automaticamente
@@ -613,8 +664,8 @@ async function loadAllGestantes() {
     
     if (!result.ok) {
       if (result.needsAuth) {
-        showAuthModal(result.error);
-        searchResults.innerHTML = '<div class="text-center py-8 text-gray-400">Aguardando autenticação...</div>';
+        showLoginScreen();
+        searchResults.innerHTML = '<div class="text-center py-8 text-gray-400">Faça login para continuar...</div>';
         return;
       }
       throw new Error(result.error);

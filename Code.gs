@@ -3,12 +3,12 @@
 // ========================================
 const SPREADSHEET_ID = "1D4zN9rcF4-XO-5VT76D7IHjxXCe4x3Gmb2D_MCEuPp0";
 
-// Lista de emails autorizados da equipe
-const AUTHORIZED_EMAILS = [
-  "csfazendalilas@gmail.com",
-  "outro-email@gmail.com"
-  // Adicione os emails do Gmail da equipe aqui
-];
+// Sistema de autenticação simples
+// Usuários autorizados: { username: 'senha' }
+const AUTHORIZED_USERS = {
+  'admin': 'admin123',  // TROQUE ESSAS SENHAS!
+  'enfermeira': 'senha123'
+};
 
 // ========================================
 // UTILITÁRIOS DE DATA
@@ -781,20 +781,41 @@ function doOptions(e) {
     .setMimeType(ContentService.MimeType.TEXT);
 }
 
-// Função para verificar autenticação
-function checkAuth() {
-  const userEmail = Session.getActiveUser().getEmail();
-  
-  if (!userEmail) {
-    return { authorized: false, error: 'Usuário não autenticado' };
+// Função de login
+function doLogin(username, password) {
+  if (!username || !password) {
+    return { ok: false, error: 'Usuário e senha são obrigatórios' };
   }
   
-  // Verifica se está na lista de emails autorizados
-  if (AUTHORIZED_EMAILS.includes(userEmail)) {
-    return { authorized: true, email: userEmail };
+  if (AUTHORIZED_USERS[username] && AUTHORIZED_USERS[username] === password) {
+    // Gerar token simples (base64 do username + timestamp)
+    const token = Utilities.base64Encode(username + ':' + new Date().getTime());
+    return { ok: true, token: token, username: username };
   }
   
-  return { authorized: false, error: 'Acesso não autorizado para: ' + userEmail };
+  return { ok: false, error: 'Usuário ou senha incorretos' };
+}
+
+// Função para verificar token
+function checkAuth(token) {
+  if (!token) {
+    return { authorized: false, error: 'Token não fornecido' };
+  }
+  
+  try {
+    // Decodificar token
+    const decoded = Utilities.newBlob(Utilities.base64Decode(token)).getDataAsString();
+    const username = decoded.split(':')[0];
+    
+    // Verificar se usuário existe
+    if (AUTHORIZED_USERS[username]) {
+      return { authorized: true, username: username };
+    }
+    
+    return { authorized: false, error: 'Token inválido' };
+  } catch (e) {
+    return { authorized: false, error: 'Token corrompido' };
+  }
 }
 
 function handleRequest(e) {
@@ -807,10 +828,22 @@ function handleRequest(e) {
       return jsonResponse({ ok: true, message: 'API Online', version: '1.0' });
     }
     
+    // Login não precisa de autenticação
+    if (action === 'login') {
+      const username = params.username;
+      const password = params.password;
+      return jsonResponse(doLogin(username, password));
+    }
+    
     // Verificar autenticação para todas as outras ações
-    const auth = checkAuth();
+    const token = params.token;
+    const auth = checkAuth(token);
     if (!auth.authorized) {
-      return jsonResponse({ ok: false, error: auth.error, needsAuth: true });
+      return jsonResponse({ 
+        ok: false, 
+        error: auth.error, 
+        needsAuth: true
+      });
     }
     
     if (action === 'listGestantes') {
