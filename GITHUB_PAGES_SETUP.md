@@ -7,7 +7,7 @@
 1. Acesse: https://github.com/csfazendalilas/prenatal/settings/pages
 2. Em **Source**, selecione:
    - **Branch**: `main`
-   - **Folder**: `/frontend` ⚠️ **IMPORTANTE: Selecione a pasta frontend**
+   - **Folder**: `/ (root)` ⚠️ **IMPORTANTE: Selecione a raiz (root)**
 3. Clique em **Save**
 
 ### 2. Aguardar Deploy
