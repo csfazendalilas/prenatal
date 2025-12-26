@@ -284,16 +284,28 @@ function searchGestantes(term) {
 function getMonitoramento(idGestante) {
   const sheet = getSheet('MonitoramentoPN');
   const data = sheet.getDataRange().getValues();
+  const headers = data[0];
   
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
-    // Última coluna é id_gestante
-    if (row[row.length - 1] === idGestante) {
-      return {
-        ultima_consulta_em: row[0] instanceof Date ? formatDateBR(row[0]) : row[0],
-        ultimo_atendimento_por: row[1],
-        retorno_em: row[17] instanceof Date ? formatDateBR(row[17]) : row[17]
-      };
+    // Buscar índice do id_gestante no header
+    const idIdx = headers.indexOf('id_gestante');
+    if (idIdx >= 0 && row[idIdx] === idGestante) {
+      // Criar objeto baseado nos headers
+      const obj = {};
+      headers.forEach((header, idx) => {
+        obj[header] = row[idx];
+      });
+      
+      // Formatar datas
+      if (obj.ultima_consulta_em instanceof Date) {
+        obj.ultima_consulta_em = formatDateBR(obj.ultima_consulta_em);
+      }
+      if (obj.retorno_em instanceof Date) {
+        obj.retorno_em = formatDateBR(obj.retorno_em);
+      }
+      
+      return obj;
     }
   }
   return null;

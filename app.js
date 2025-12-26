@@ -639,6 +639,9 @@ function setupConsultaFormSeguimento() {
     // Gerar texto SOAP
     const textoSOAP = gerarTextoSOAP();
     
+    // Coletar exames realizados
+    const examesRealizados = coletarExamesRealizados();
+    
     // Preparar dados para salvar
     const data = {
       action: 'saveConsulta',
@@ -653,7 +656,10 @@ function setupConsultaFormSeguimento() {
       bcf: document.getElementById('o-bcf').value,
       queixas: textoSOAP.subjetivo,
       condutas: textoSOAP.plano,
-      flags: ''
+      flags: '',
+      sorologias_realizadas: JSON.stringify(examesRealizados.sorologias),
+      vacinas_realizadas: JSON.stringify(examesRealizados.vacinas),
+      exames_realizados: JSON.stringify(examesRealizados.exames)
     };
     
     showLoading();
@@ -1067,7 +1073,7 @@ function fillConsultaWithGestanteData() {
   loadPendenciasExames();
 }
 
-// Carregar pendências de exames por IG
+// Carregar pendências de exames por IG (resumo)
 async function loadPendenciasExames() {
   if (!currentGestante || !currentGestante.id_gestante) return;
   
@@ -1080,12 +1086,103 @@ async function loadPendenciasExames() {
       } else {
         document.getElementById('pendencias-exames').textContent = 'Nenhuma pendência de exames no momento.';
       }
+      
+      // Carregar pendências interativas
+      loadPendenciasInterativas(result.data);
     } else {
       document.getElementById('pendencias-exames').textContent = 'Nenhuma pendência de exames no momento.';
+      loadPendenciasInterativas([]);
     }
   } catch (error) {
     document.getElementById('pendencias-exames').textContent = 'Erro ao carregar pendências.';
   }
+}
+
+// Carregar pendências interativas com checkboxes
+function loadPendenciasInterativas(pendencias) {
+  const container = document.getElementById('pendencias-interativas');
+  
+  if (!pendencias || pendencias.length === 0) {
+    container.innerHTML = '<p class="text-gray-500 text-sm">Nenhuma pendência no momento.</p>';
+    return;
+  }
+  
+  // Agrupar por tipo
+  const grupos = {
+    'SOROLOGIA': [],
+    'VACINA': [],
+    'EXAME': []
+  };
+  
+  pendencias.forEach(p => {
+    if (grupos[p.tipo]) {
+      grupos[p.tipo].push(p);
+    }
+  });
+  
+  let html = '';
+  
+  // Sorologias (ISTs)
+  if (grupos.SOROLOGIA.length > 0) {
+    html += '<div class="bg-yellow-50 p-3 rounded border border-yellow-200">';
+    html += '<p class="font-semibold text-yellow-900 mb-2">🔬 Sorologias (ISTs) Pendentes:</p>';
+    grupos.SOROLOGIA.forEach(p => {
+      html += `<label class="flex items-center space-x-2 text-sm">
+        <input type="checkbox" class="rounded pendencia-check" data-tipo="sorologia" data-item="${p.item}">
+        <span>${p.descricao}</span>
+      </label>`;
+    });
+    html += '</div>';
+  }
+  
+  // Vacinas
+  if (grupos.VACINA.length > 0) {
+    html += '<div class="bg-blue-50 p-3 rounded border border-blue-200 mt-2">';
+    html += '<p class="font-semibold text-blue-900 mb-2">💉 Vacinas Pendentes:</p>';
+    grupos.VACINA.forEach(p => {
+      html += `<label class="flex items-center space-x-2 text-sm">
+        <input type="checkbox" class="rounded pendencia-check" data-tipo="vacina" data-item="${p.item}">
+        <span>${p.descricao}</span>
+      </label>`;
+    });
+    html += '</div>';
+  }
+  
+  // Exames
+  if (grupos.EXAME.length > 0) {
+    html += '<div class="bg-green-50 p-3 rounded border border-green-200 mt-2">';
+    html += '<p class="font-semibold text-green-900 mb-2">📋 Exames Pendentes:</p>';
+    grupos.EXAME.forEach(p => {
+      html += `<label class="flex items-center space-x-2 text-sm">
+        <input type="checkbox" class="rounded pendencia-check" data-tipo="exame" data-item="${p.item}">
+        <span>${p.descricao}</span>
+      </label>`;
+    });
+    html += '</div>';
+  }
+  
+  container.innerHTML = html;
+}
+
+// Coletar exames realizados (checkboxes marcados)
+function coletarExamesRealizados() {
+  const checkboxes = document.querySelectorAll('.pendencia-check:checked');
+  const realizados = {
+    sorologias: [],
+    vacinas: [],
+    exames: []
+  };
+  
+  checkboxes.forEach(cb => {
+    const tipo = cb.dataset.tipo;
+    const item = cb.dataset.item;
+    
+    if (tipo === 'sorologia') realizados.sorologias.push(item);
+    if (tipo === 'vacina') realizados.vacinas.push(item);
+    if (tipo === 'exame') realizados.exames.push(item);
+  });
+  
+  return realizados;
 }
 
 // Toggle para outros sinais de alarme
