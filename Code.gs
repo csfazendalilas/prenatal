@@ -3,16 +3,12 @@
 // ========================================
 const SPREADSHEET_ID = "1D4zN9rcF4-XO-5VT76D7IHjxXCe4x3Gmb2D_MCEuPp0";
 
-// Lista de emails autorizados (ou domínio)
-// Adicione os emails da equipe aqui
+// Lista de emails autorizados da equipe
 const AUTHORIZED_EMAILS = [
-  "seu-email@pmf.gov.br",
-  "outro-email@pmf.gov.br"
-  // Adicione mais emails conforme necessário
+  "seu-email@gmail.com",
+  "outro-email@gmail.com"
+  // Adicione os emails do Gmail da equipe aqui
 ];
-
-// Ou use um domínio autorizado (ex: "@pmf.gov.br")
-const AUTHORIZED_DOMAIN = "@pmf.gov.br"; // Deixe vazio "" se quiser usar lista de emails
 
 // ========================================
 // UTILITÁRIOS DE DATA
@@ -793,13 +789,8 @@ function checkAuth() {
     return { authorized: false, error: 'Usuário não autenticado' };
   }
   
-  // Verifica domínio autorizado
-  if (AUTHORIZED_DOMAIN && userEmail.endsWith(AUTHORIZED_DOMAIN)) {
-    return { authorized: true, email: userEmail };
-  }
-  
-  // Verifica lista de emails autorizados
-  if (AUTHORIZED_EMAILS.length > 0 && AUTHORIZED_EMAILS.includes(userEmail)) {
+  // Verifica se está na lista de emails autorizados
+  if (AUTHORIZED_EMAILS.includes(userEmail)) {
     return { authorized: true, email: userEmail };
   }
   
