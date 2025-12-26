@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assistente Pré-Natal - APS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .tab-active {
+      @apply border-b-2 border-blue-500 text-blue-600 font-semibold;
+    }
+    .tab-inactive {
+      @apply text-gray-500 hover:text-gray-700;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+  
+  <!-- Header -->
+  <header class="bg-blue-600 text-white shadow-md">
+    <div class="container mx-auto px-4 py-4">
+      <h1 class="text-2xl font-bold">Assistente Pré-Natal - APS</h1>
+      <p class="text-sm text-blue-100">Sistema inteligente de apoio ao pré-natal</p>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container mx-auto px-4 py-6 max-w-7xl">
+    
+    <!-- Tabs Navigation -->
+    <div class="bg-white rounded-lg shadow-sm mb-6">
+      <nav class="flex border-b overflow-x-auto">
+        <button id="tab-buscar" class="px-6 py-3 tab-active whitespace-nowrap" onclick="switchTab('buscar')">
+          🔍 Buscar Gestante
+        </button>
+        <button id="tab-cadastrar" class="px-6 py-3 tab-inactive whitespace-nowrap" onclick="switchTab('cadastrar')">
+          ➕ Cadastrar Gestante
+        </button>
+        <button id="tab-abertura" class="px-6 py-3 tab-inactive whitespace-nowrap" onclick="switchTab('abertura')">
+          🆕 Abertura de Pré-Natal
+        </button>
+        <button id="tab-seguimento" class="px-6 py-3 tab-inactive whitespace-nowrap" onclick="switchTab('seguimento')">
+          📋 Consulta de Seguimento
+        </button>
+      </nav>
+    </div>
+
+    <!-- Tab Content: Buscar -->
+    <div id="content-buscar" class="tab-content">
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">Buscar Gestante</h2>
+        
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Digite nome ou ID</label>
+          <div class="flex gap-2">
+            <input 
+              type="text" 
+              id="search-term" 
+              class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Ex: Maria Silva ou PN-000001"
+              onkeypress="if(event.key==='Enter') searchGestantes()"
+            >
+            <button 
+              onclick="searchGestantes()" 
+              class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+            >
+              Buscar
+            </button>
+          </div>
+        </div>
+
+        <div id="search-results" class="space-y-3"></div>
+      </div>
+    </div>
+
+    <!-- Tab Content: Cadastrar -->
+    <div id="content-cadastrar" class="tab-content hidden">
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">Cadastrar Nova Gestante</h2>
+        
+        <form id="form-cadastro" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Nome Completo *</label>
+              <input 
+                type="text" 
+                name="nome" 
+                required 
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              >
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento *</label>
+              <input 
+                type="text" 
+                name="dn" 
+                required 
+                placeholder="dd/MM/aaaa"
+                maxlength="10"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                oninput="formatDateInput(this)"
+              >
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
+              <input 
+                type="text" 
+                name="telefone" 
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                placeholder="(00) 00000-0000"
+              >
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">DUM *</label>
+              <input 
+                type="text" 
+                name="dum" 
+                required 
+                placeholder="dd/MM/aaaa"
+                maxlength="10"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                oninput="formatDateInput(this)"
+              >
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">DPP (USG)</label>
+              <input 
+                type="text" 
+                name="dpp_usg" 
+                placeholder="dd/MM/aaaa"
+                maxlength="10"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                oninput="formatDateInput(this)"
+              >
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Risco</label>
+              <select 
+                name="risco" 
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="HABITUAL">HABITUAL</option>
+                <option value="ALTO RISCO">ALTO RISCO</option>
+              </select>
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Observações</label>
+            <textarea 
+              name="observacoes" 
+              rows="3"
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+            ></textarea>
+          </div>
+          
+          <div class="flex gap-3">
+            <button 
+              type="submit" 
+              class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition font-medium"
+            >
+              Salvar Gestante
+            </button>
+            <button 
+              type="reset" 
+              class="px-6 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition"
+            >
+              Limpar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Tab Content: Abertura de Pré-Natal -->
+    <div id="content-abertura" class="tab-content hidden">
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">Abertura de Pré-Natal (Primeira Consulta)</h2>
+        
+        <!-- Resumo da Gestante -->
+        <div id="resumo-gestante-abertura" class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md hidden">
+          <h3 class="font-semibold text-blue-900 mb-2">Gestante Selecionada</h3>
+          <div id="resumo-content-abertura" class="text-sm text-gray-700"></div>
+        </div>
+
+        <!-- Checklist e Orientações por IG -->
+        <div id="orientacoes-abertura" class="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md hidden">
+          <h3 class="font-semibold text-yellow-900 mb-2">📋 Checklist e Orientações (por IG)</h3>
+          <div id="checklist-content" class="text-sm space-y-2"></div>
+        </div>
+
+        <!-- Pendências -->
+        <div id="pendencias-abertura" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-md hidden">
+          <h3 class="font-semibold text-red-900 mb-2">⚠️ Pendências</h3>
+          <div id="pendencias-content-abertura" class="text-sm space-y-1"></div>
+        </div>
+
+        <form id="form-abertura" class="space-y-6">
+          <input type="hidden" name="id_gestante" id="abertura-id-gestante">
+          <input type="hidden" name="tipo_consulta" value="ABERTURA">
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Data da Consulta *</label>
+              <input 
+                type="text" 
+                name="data_consulta" 
+                required 
+                placeholder="dd/MM/aaaa"
+                maxlength="10"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                oninput="formatDateInput(this)"
+              >
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Profissional *</label>
+              <input 
+                type="text" 
+                name="profissional" 
+                required 
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              >
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Profissional *</label>
+              <select 
+                name="tipo_profissional" 
+                required
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                onchange="updateOrientacoes()"
+              >
+                <option value="MEDICO">Médico</option>
+                <option value="ENFERMEIRA">Enfermeira</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Dados Específicos de Abertura -->
+          <div class="border-t pt-4">
+            <h3 class="font-semibold text-gray-900 mb-4">Dados da Abertura</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Planejamento da Gestação</label>
+                <select 
+                  name="planejamento_gestacao" 
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Selecione...</option>
+                  <option value="Planejada">Planejada</option>
+                  <option value="Não planejada">Não planejada</option>
+                  <option value="Não informado">Não informado</option>
+                </select>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Primigesta</label>
+                <select 
+                  name="primigesta" 
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Selecione...</option>
+                  <option value="Sim">Sim</option>
+                  <option value="Não">Não</option>
+                </select>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Ácido Fólico</label>
+                <select 
+                  name="acido_folico" 
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Selecione...</option>
+                  <option value="Sim, em uso">Sim, em uso</option>
+                  <option value="Não">Não</option>
+                  <option value="Não informado">Não informado</option>
+                </select>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Beta-hCG</label>
+                <input 
+                  type="text" 
+                  name="beta_hcg" 
+                  placeholder="Ex: Positivo, 15/06/2024"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                >
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">1ª USG</label>
+                <input 
+                  type="text" 
+                  name="primeira_usg" 
+                  placeholder="Ex: 12 semanas, 15/06/2024"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                >
+              </div>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Histórico Obstétrico</label>
+              <textarea 
+                name="historico_obstetrico" 
+                rows="2"
+                placeholder="Ex: G2P1A0, parto cesárea anterior"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Exame Físico -->
+          <div class="border-t pt-4">
+            <h3 class="font-semibold text-gray-900 mb-4">Exame Físico</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">PA</label>
+                <input 
+                  type="text" 
+                  name="pa" 
+                  placeholder="120x80"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                >
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Peso (kg)</label>
+                <input 
+                  type="text" 
+                  name="peso" 
+                  placeholder="65.5"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                >
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">AU (cm)</label>
+                <input 
+                  type="text" 
+                  name="au" 
+                  placeholder="32"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                >
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">BCF (bpm)</label>
+                <input 
+                  type="text" 
+                  name="bcf" 
+                  placeholder="140"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                >
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Edema</label>
+                <select 
+                  name="edema" 
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Selecione...</option>
+                  <option value="Ausente">Ausente</option>
+                  <option value="Leve">Leve</option>
+                  <option value="Moderado">Moderado</option>
+                  <option value="Acentuado">Acentuado</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Queixas e Sinais de Alerta -->
+          <div class="border-t pt-4">
+            <h3 class="font-semibold text-gray-900 mb-4">Queixas e Sinais de Alerta</h3>
+            
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Queixas/Intercorrências</label>
+              <textarea 
+                name="queixas" 
+                rows="3"
+                placeholder="Descreva as queixas da gestante"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              ></textarea>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Sinais de Alerta</label>
+              <textarea 
+                name="sinais_alerta" 
+                rows="2"
+                placeholder="Sangramento, perda de líquido, dor abdominal, febre, etc."
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Sorologias -->
+          <div class="border-t pt-4">
+            <h3 class="font-semibold text-gray-900 mb-4">Sorologias</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">HIV</label>
+                <select 
+                  name="sorologia_hiv" 
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Pendente</option>
+                  <option value="Negativo">Negativo</option>
+                  <option value="Positivo">Positivo</option>
+                  <option value="Solicitado">Solicitado</option>
+                </select>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">HBsAg</label>
+                <select 
+                  name="sorologia_hbsag" 
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Pendente</option>
+                  <option value="Negativo">Negativo</option>
+                  <option value="Positivo">Positivo</option>
+                  <option value="Solicitado">Solicitado</option>
+                </select>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">HCV</label>
+                <select 
+                  name="sorologia_hcv" 
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Pendente</option>
+                  <option value="Negativo">Negativo</option>
+                  <option value="Positivo">Positivo</option>
+                  <option value="Solicitado">Solicitado</option>
+                </select>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">VDRL</label>
+                <select 
+                  name="sorologia_vdrl" 
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Pendente</option>
+                  <option value="Negativo">Negativo</option>
+                  <option value="Positivo">Positivo</option>
+                  <option value="Solicitado">Solicitado</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Vacinas -->
+          <div class="border-t pt-4">
+            <h3 class="font-semibold text-gray-900 mb-4">Vacinas</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">dTpa</label>
+                <select 
+                  name="vacina_dtpa" 
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Pendente</option>
+                  <option value="Em dia">Em dia</option>
+                  <option value="Solicitado">Solicitado</option>
+                </select>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Hepatite B</label>
+                <select 
+                  name="vacina_hepatiteb" 
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Pendente</option>
+                  <option value="Em dia">Em dia</option>
+                  <option value="Solicitado">Solicitado</option>
+                </select>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Influenza</label>
+                <select 
+                  name="vacina_influenza" 
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Pendente</option>
+                  <option value="Em dia">Em dia</option>
+                  <option value="Solicitado">Solicitado</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Condutas -->
+          <div class="border-t pt-4">
+            <h3 class="font-semibold text-gray-900 mb-4">Condutas</h3>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Condutas/Orientações</label>
+              <textarea 
+                name="condutas" 
+                rows="4"
+                placeholder="Solicitações, orientações, encaminhamentos..."
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              ></textarea>
+            </div>
+            
+            <div class="mt-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Flags/Alertas</label>
+              <input 
+                type="text" 
+                name="flags" 
+                placeholder="Ex: HAS, DM, Anemia"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              >
+            </div>
+          </div>
+          
+          <button 
+            type="submit" 
+            class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition font-medium"
+          >
+            Salvar Abertura de Pré-Natal
+          </button>
+        </form>
+
+        <!-- Texto Celk (aparece após salvar) -->
+        <div id="celk-result-abertura" class="mt-6 hidden">
+          <h3 class="font-semibold text-gray-900 mb-2">📋 Texto para Celk</h3>
+          <textarea 
+            id="celk-text-abertura" 
+            readonly 
+            rows="20"
+            class="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 font-mono text-sm"
+          ></textarea>
+          <button 
+            onclick="copyCelk('abertura')" 
+            class="mt-2 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition"
+          >
+            📋 Copiar Texto
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Content: Consulta de Seguimento -->
+    <div id="content-seguimento" class="tab-content hidden">
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">Consulta de Seguimento</h2>
+        
+        <!-- Resumo da Gestante -->
+        <div id="resumo-gestante-seguimento" class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md hidden">
+          <h3 class="font-semibold text-blue-900 mb-2">Gestante Selecionada</h3>
+          <div id="resumo-content-seguimento" class="text-sm text-gray-700"></div>
+        </div>
+
+        <!-- Checklist e Orientações por IG -->
+        <div id="orientacoes-seguimento" class="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md hidden">
+          <h3 class="font-semibold text-yellow-900 mb-2">📋 Checklist e Orientações (por IG)</h3>
+          <div id="checklist-content-seguimento" class="text-sm space-y-2"></div>
+        </div>
+
+        <!-- Pendências -->
+        <div id="pendencias-seguimento" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-md hidden">
+          <h3 class="font-semibold text-red-900 mb-2">⚠️ Pendências</h3>
+          <div id="pendencias-content-seguimento" class="text-sm space-y-1"></div>
+        </div>
+
+        <form id="form-seguimento" class="space-y-6">
+          <input type="hidden" name="id_gestante" id="seguimento-id-gestante">
+          <input type="hidden" name="tipo_consulta" value="SEGUIMENTO">
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Data da Consulta *</label>
+              <input 
+                type="text" 
+                name="data_consulta" 
+                required 
+                placeholder="dd/MM/aaaa"
+                maxlength="10"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                oninput="formatDateInput(this)"
+              >
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Profissional *</label>
+              <input 
+                type="text" 
+                name="profissional" 
+                required 
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              >
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Profissional *</label>
+              <select 
+                name="tipo_profissional" 
+                required
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                onchange="updateOrientacoes()"
+              >
+                <option value="MEDICO">Médico</option>
+                <option value="ENFERMEIRA">Enfermeira</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Exame Físico -->
+          <div class="border-t pt-4">
+            <h3 class="font-semibold text-gray-900 mb-4">Exame Físico</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">PA</label>
+                <input 
+                  type="text" 
+                  name="pa" 
+                  placeholder="120x80"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                >
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Peso (kg)</label>
+                <input 
+                  type="text" 
+                  name="peso" 
+                  placeholder="65.5"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                >
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">AU (cm)</label>
+                <input 
+                  type="text" 
+                  name="au" 
+                  placeholder="32"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                >
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">BCF (bpm)</label>
+                <input 
+                  type="text" 
+                  name="bcf" 
+                  placeholder="140"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                >
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Edema</label>
+                <select 
+                  name="edema" 
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Selecione...</option>
+                  <option value="Ausente">Ausente</option>
+                  <option value="Leve">Leve</option>
+                  <option value="Moderado">Moderado</option>
+                  <option value="Acentuado">Acentuado</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Queixas e Sinais de Alerta -->
+          <div class="border-t pt-4">
+            <h3 class="font-semibold text-gray-900 mb-4">Queixas e Sinais de Alerta</h3>
+            
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Queixas/Intercorrências</label>
+              <textarea 
+                name="queixas" 
+                rows="3"
+                placeholder="Descreva as queixas da gestante"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              ></textarea>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Sinais de Alerta</label>
+              <textarea 
+                name="sinais_alerta" 
+                rows="2"
+                placeholder="Sangramento, perda de líquido, dor abdominal, febre, etc."
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Condutas -->
+          <div class="border-t pt-4">
+            <h3 class="font-semibold text-gray-900 mb-4">Condutas</h3>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Condutas/Orientações</label>
+              <textarea 
+                name="condutas" 
+                rows="4"
+                placeholder="Solicitações, orientações, encaminhamentos..."
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              ></textarea>
+            </div>
+            
+            <div class="mt-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Flags/Alertas</label>
+              <input 
+                type="text" 
+                name="flags" 
+                placeholder="Ex: HAS, DM, Anemia"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              >
+            </div>
+          </div>
+          
+          <button 
+            type="submit" 
+            class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition font-medium"
+          >
+            Salvar Consulta de Seguimento
+          </button>
+        </form>
+
+        <!-- Texto Celk (aparece após salvar) -->
+        <div id="celk-result-seguimento" class="mt-6 hidden">
+          <h3 class="font-semibold text-gray-900 mb-2">📋 Texto para Celk</h3>
+          <textarea 
+            id="celk-text-seguimento" 
+            readonly 
+            rows="20"
+            class="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 font-mono text-sm"
+          ></textarea>
+          <button 
+            onclick="copyCelk('seguimento')" 
+            class="mt-2 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition"
+          >
+            📋 Copiar Texto
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg hidden transition-opacity z-50">
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="loading" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-lg p-6 shadow-xl">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+      <p class="mt-4 text-gray-700 font-medium">Processando...</p>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

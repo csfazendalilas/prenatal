@@ -1,0 +1,22 @@
+# Clasp
+.clasp.json
+
+# Node modules (se houver)
+node_modules/
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos temporários
+*.tmp
+*.log
+
+# Arquivos de backup
+*.bak
+*~
+
+# IDE
+.vscode/
+.idea/
+

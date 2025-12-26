@@ -1,0 +1,15 @@
+# Ignorar frontend
+frontend/
+**/frontend/**
+
+# Ignorar arquivos de documentação
+README.md
+SETUP_PASSO_A_PASSO.md
+*.md
+
+# Ignorar arquivos de código duplicado
+Código.js
+
+# Ignorar arquivos de configuração do clasp (já estão no projeto)
+.clasp.json
+
