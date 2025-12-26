@@ -733,6 +733,7 @@
               <input 
                 type="text" 
                 name="data_consulta" 
+                id="data-consulta-auto"
                 required 
                 placeholder="dd/MM/aaaa"
                 maxlength="10"
@@ -768,35 +769,107 @@
           <!-- Medicamentos em Uso -->
           <div class="border-t pt-4">
             <h3 class="font-semibold text-gray-900 mb-3">💊 Medicamentos em Uso</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <label class="flex items-center space-x-2 text-sm">
-                <input type="checkbox" name="med_calcio" value="sim" class="rounded">
-                <span>Cálcio (dose habitual uso diário)</span>
-              </label>
-              <label class="flex items-center space-x-2 text-sm">
-                <input type="checkbox" name="med_sulfato_ferroso" value="sim" class="rounded">
-                <span>Sulfato Ferroso (dose habitual uso diário)</span>
-              </label>
-              <label class="flex items-center space-x-2 text-sm">
-                <input type="checkbox" name="med_acido_folico" value="sim" class="rounded">
-                <span>Ácido Fólico</span>
-              </label>
-              <label class="flex items-center space-x-2 text-sm">
-                <input type="checkbox" name="med_aas" value="sim" class="rounded">
-                <span>AAS</span>
-              </label>
+            <div class="space-y-2">
+              <div class="flex items-center gap-2">
+                <input type="checkbox" id="med-aas" class="rounded">
+                <label for="med-aas" class="text-sm font-medium">AAS</label>
+                <input type="text" id="med-aas-dose" placeholder="100mg 1-0-0" class="flex-1 px-3 py-1 border border-gray-300 rounded text-sm">
+              </div>
+              <div class="flex items-center gap-2">
+                <input type="checkbox" id="med-calcio" class="rounded">
+                <label for="med-calcio" class="text-sm font-medium">Cálcio</label>
+                <input type="text" id="med-calcio-dose" placeholder="100mg 1-0-1" class="flex-1 px-3 py-1 border border-gray-300 rounded text-sm">
+              </div>
+              <div class="flex items-center gap-2">
+                <input type="checkbox" id="med-sulfato" class="rounded">
+                <label for="med-sulfato" class="text-sm font-medium">Sulfato Ferroso</label>
+                <input type="text" id="med-sulfato-dose" placeholder="40mg 1-0-0" class="flex-1 px-3 py-1 border border-gray-300 rounded text-sm">
+              </div>
+              <div class="flex items-center gap-2">
+                <input type="checkbox" id="med-folico" class="rounded">
+                <label for="med-folico" class="text-sm font-medium">Ácido Fólico</label>
+                <input type="text" id="med-folico-dose" placeholder="5mg 1x/dia" class="flex-1 px-3 py-1 border border-gray-300 rounded text-sm">
+              </div>
             </div>
           </div>
 
-          <!-- S - SUBJETIVO -->
+          <!-- S - SUBJETIVO (checkboxes) -->
           <div class="border-t pt-4">
             <h3 class="font-semibold text-gray-900 mb-3 text-lg">📝 S. (Subjetivo)</h3>
-            <textarea 
-              name="subjetivo" 
-              rows="4"
-              placeholder="Ex: Gestante G2P1nA0, comparece hoje para 10ª consulta de pré-natal. Refere estar bem, nega queixas no momento. Nega contrações regulares, nega dor abdominal contínua, nega perda de líquido, sangramento vaginal ou corrimento anormal. Nega disúria, polaciúria ou outros sintomas urinários. Refere movimentação fetal presente e diária. Nega cefaleia, escotomas, epigastralgia ou outros sinais de alarme."
-              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-            ></textarea>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+              <label class="flex items-center space-x-2 text-sm">
+                <input type="checkbox" id="s-contracoes" class="rounded">
+                <span>Contrações regulares?</span>
+              </label>
+              <label class="flex items-center space-x-2 text-sm">
+                <input type="checkbox" id="s-dor-abdominal" class="rounded">
+                <span>Dor abdominal contínua?</span>
+              </label>
+              <label class="flex items-center space-x-2 text-sm">
+                <input type="checkbox" id="s-perda-liquido" class="rounded">
+                <span>Perda de líquido?</span>
+              </label>
+              <label class="flex items-center space-x-2 text-sm">
+                <input type="checkbox" id="s-sangramento" class="rounded">
+                <span>Sangramento vaginal?</span>
+              </label>
+              <label class="flex items-center space-x-2 text-sm">
+                <input type="checkbox" id="s-corrimento" class="rounded">
+                <span>Corrimento anormal?</span>
+              </label>
+              <label class="flex items-center space-x-2 text-sm">
+                <input type="checkbox" id="s-disuria" class="rounded">
+                <span>Disúria?</span>
+              </label>
+              <label class="flex items-center space-x-2 text-sm">
+                <input type="checkbox" id="s-polaciuria" class="rounded">
+                <span>Polaciúria?</span>
+              </label>
+              <label class="flex items-center space-x-2 text-sm">
+                <input type="checkbox" id="s-sintomas-urinarios" class="rounded">
+                <span>Outros sintomas urinários?</span>
+              </label>
+              <label class="flex items-center space-x-2 text-sm">
+                <input type="checkbox" id="s-cefaleia" class="rounded">
+                <span>Cefaleia?</span>
+              </label>
+              <label class="flex items-center space-x-2 text-sm">
+                <input type="checkbox" id="s-escotomas" class="rounded">
+                <span>Escotomas?</span>
+              </label>
+              <label class="flex items-center space-x-2 text-sm">
+                <input type="checkbox" id="s-epigastralgia" class="rounded">
+                <span>Epigastralgia?</span>
+              </label>
+              <label class="flex items-center space-x-2 text-sm">
+                <input type="checkbox" id="s-mov-fetal" class="rounded" checked>
+                <span>Movimentação fetal presente?</span>
+              </label>
+            </div>
+            
+            <div class="mb-3">
+              <label class="flex items-center space-x-2 text-sm mb-2">
+                <input type="checkbox" id="s-outros-alarme" class="rounded" onchange="toggleOtrosAlarme()">
+                <span class="font-medium">Outros sinais de alarme?</span>
+              </label>
+              <textarea 
+                id="s-outros-alarme-text" 
+                rows="2"
+                placeholder="Descreva outros sinais de alarme..."
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 hidden"
+              ></textarea>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Queixas/Observações adicionais</label>
+              <textarea 
+                id="s-queixas-adicionais" 
+                rows="2"
+                placeholder="Digite queixas ou observações adicionais..."
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              ></textarea>
+            </div>
           </div>
 
           <!-- O - OBJETIVO (Exame Físico) -->
@@ -804,22 +877,35 @@
             <h3 class="font-semibold text-gray-900 mb-3 text-lg">🩺 O. (Objetivo - Exame Físico)</h3>
             
             <div class="mb-3">
-              <label class="block text-sm font-medium text-gray-700 mb-1">Estado Geral</label>
-              <input 
-                type="text" 
-                name="estado_geral" 
-                placeholder="Ex: BEG LOC MUC AAA, Corada hidratada eupneica"
-                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-              >
+              <label class="flex items-center space-x-2 text-sm mb-2">
+                <input type="checkbox" id="o-beg" class="rounded" checked onchange="toggleBEG()">
+                <span class="font-medium">BEG LOC MUC AAA, Corada hidratada eupneica</span>
+              </label>
+              <textarea 
+                id="o-beg-custom" 
+                rows="2"
+                placeholder="Descreva o estado geral alternativo..."
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 hidden"
+              ></textarea>
             </div>
             
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">PA</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">PA Sistólica</label>
                 <input 
                   type="text" 
-                  name="pa" 
-                  placeholder="121x75"
+                  id="o-pa-sist"
+                  placeholder="121"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                >
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">PA Diastólica</label>
+                <input 
+                  type="text" 
+                  id="o-pa-diast"
+                  placeholder="75"
                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                 >
               </div>
@@ -828,7 +914,7 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">FC (bpm)</label>
                 <input 
                   type="text" 
-                  name="fc" 
+                  id="o-fc"
                   placeholder="78"
                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                 >
@@ -838,7 +924,7 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">BCF (bpm)</label>
                 <input 
                   type="text" 
-                  name="bcf" 
+                  id="o-bcf"
                   placeholder="138"
                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                 >
@@ -848,7 +934,7 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">AU (cm)</label>
                 <input 
                   type="text" 
-                  name="au" 
+                  id="o-au"
                   placeholder="35"
                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                 >
@@ -858,7 +944,7 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">Peso (kg)</label>
                 <input 
                   type="text" 
-                  name="peso" 
+                  id="o-peso"
                   placeholder="77.8"
                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                 >
@@ -867,7 +953,7 @@
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Edema MMII</label>
                 <select 
-                  name="edema" 
+                  id="o-edema"
                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="Ausente">Ausente</option>
@@ -876,12 +962,17 @@
               </div>
             </div>
             
+            <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
+              <p class="text-sm font-semibold text-yellow-900 mb-1">📋 Pendências de Exames:</p>
+              <p class="text-sm text-yellow-800" id="pendencias-exames">Calculando...</p>
+            </div>
+            
             <div class="mt-3">
-              <label class="block text-sm font-medium text-gray-700 mb-1">Exames (resumo)</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Exames realizados (resumo)</label>
               <input 
                 type="text" 
-                name="exames_resumo" 
-                placeholder="Ex: VDRL, HIV, HBsAg não reagentes no terceiro trimestre, toxoplasmose imune, tipagem O positivo, PNRH"
+                id="o-exames"
+                placeholder="Ex: VDRL, HIV, HBsAg não reagentes no 3T, toxoplasmose imune, tipagem O+, PNRH"
                 class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
               >
             </div>
@@ -891,11 +982,11 @@
           <div class="border-t pt-4">
             <h3 class="font-semibold text-gray-900 mb-3 text-lg">🔍 A. (Avaliação)</h3>
             <textarea 
-              name="avaliacao" 
+              id="a-avaliacao"
               rows="3"
-              placeholder="Ex: Gestação tópica única a termo&#10;Gestante de risco habitual"
               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-            ></textarea>
+            >Gestação tópica única
+Gestante de risco habitual</textarea>
           </div>
 
           <!-- P - PLANO -->

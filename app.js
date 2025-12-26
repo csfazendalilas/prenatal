@@ -616,9 +616,213 @@ function setupConsultaForm(formId, tipoConsulta) {
   });
 }
 
+// Processar formulário de seguimento com checkboxes
+function setupConsultaFormSeguimento() {
+  document.getElementById('form-seguimento').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    if (!currentGestante) {
+      showToast('Selecione uma gestante primeiro', 'error');
+      return;
+    }
+    
+    // Coletar dados do formulário
+    const dataConsulta = document.getElementById('data-consulta-auto').value;
+    const profissional = document.querySelector('[name="profissional"]').value;
+    const tipoProfissional = document.querySelector('[name="tipo_profissional"]').value;
+    
+    if (!validateDateBR(dataConsulta)) {
+      showToast('Data da consulta inválida (use dd/MM/aaaa)', 'error');
+      return;
+    }
+    
+    // Gerar texto SOAP
+    const textoSOAP = gerarTextoSOAP();
+    
+    // Preparar dados para salvar
+    const data = {
+      action: 'saveConsulta',
+      id_gestante: currentGestante.id_gestante,
+      data_consulta: dataConsulta,
+      profissional: profissional,
+      tipo_profissional: tipoProfissional,
+      tipo_consulta: 'SEGUIMENTO',
+      pa: `${document.getElementById('o-pa-sist').value}x${document.getElementById('o-pa-diast').value}`,
+      peso: document.getElementById('o-peso').value,
+      au: document.getElementById('o-au').value,
+      bcf: document.getElementById('o-bcf').value,
+      queixas: textoSOAP.subjetivo,
+      condutas: textoSOAP.plano,
+      flags: ''
+    };
+    
+    showLoading();
+    
+    try {
+      const result = await apiCall(data);
+      hideLoading();
+      
+      if (!result.ok) {
+        showToast(result.error || 'Erro ao salvar consulta', 'error');
+        return;
+      }
+      
+      showToast('Consulta salva com sucesso!', 'success');
+      
+      // Mostrar texto Celk
+      const celkTextarea = document.getElementById('celk-text-seguimento');
+      const celkResult = document.getElementById('celk-result-seguimento');
+      
+      celkTextarea.value = textoSOAP.completo;
+      celkResult.classList.remove('hidden');
+      
+      // Rolar para o texto
+      celkResult.scrollIntoView({ behavior: 'smooth' });
+      
+    } catch (error) {
+      hideLoading();
+      showToast('Erro ao salvar consulta', 'error');
+    }
+  });
+}
+
+// Gerar texto SOAP automaticamente
+function gerarTextoSOAP() {
+  // Medicamentos em uso
+  const medicamentos = [];
+  if (document.getElementById('med-aas').checked) {
+    medicamentos.push(`-${document.getElementById('med-aas-dose').value || 'AAS (não especificado)'}`);
+  }
+  if (document.getElementById('med-calcio').checked) {
+    medicamentos.push(`-${document.getElementById('med-calcio-dose').value || 'Cálcio (não especificado)'}`);
+  }
+  if (document.getElementById('med-sulfato').checked) {
+    medicamentos.push(`-${document.getElementById('med-sulfato-dose').value || 'Sulfato Ferroso (não especificado)'}`);
+  }
+  if (document.getElementById('med-folico').checked) {
+    medicamentos.push(`-${document.getElementById('med-folico-dose').value || 'Ácido Fólico (não especificado)'}`);
+  }
+  
+  const textoMedicamentos = medicamentos.length > 0 
+    ? `Em uso de:\n${medicamentos.join('\n')}\n\n` 
+    : '';
+  
+  // SUBJETIVO
+  const sintomas = [];
+  const negativos = [];
+  
+  if (document.getElementById('s-contracoes').checked) sintomas.push('contrações regulares');
+  else negativos.push('contrações regulares');
+  
+  if (document.getElementById('s-dor-abdominal').checked) sintomas.push('dor abdominal contínua');
+  else negativos.push('dor abdominal contínua');
+  
+  if (document.getElementById('s-perda-liquido').checked) sintomas.push('perda de líquido');
+  else negativos.push('perda de líquido');
+  
+  if (document.getElementById('s-sangramento').checked) sintomas.push('sangramento vaginal');
+  else negativos.push('sangramento vaginal');
+  
+  if (document.getElementById('s-corrimento').checked) sintomas.push('corrimento anormal');
+  else negativos.push('corrimento anormal');
+  
+  if (document.getElementById('s-disuria').checked) sintomas.push('disúria');
+  else negativos.push('disúria');
+  
+  if (document.getElementById('s-polaciuria').checked) sintomas.push('polaciúria');
+  else negativos.push('polaciúria');
+  
+  if (document.getElementById('s-sintomas-urinarios').checked) sintomas.push('outros sintomas urinários');
+  else negativos.push('outros sintomas urinários');
+  
+  if (document.getElementById('s-cefaleia').checked) sintomas.push('cefaleia');
+  else negativos.push('cefaleia');
+  
+  if (document.getElementById('s-escotomas').checked) sintomas.push('escotomas');
+  else negativos.push('escotomas');
+  
+  if (document.getElementById('s-epigastralgia').checked) sintomas.push('epigastralgia');
+  else negativos.push('epigastralgia');
+  
+  const movFetal = document.getElementById('s-mov-fetal').checked
+    ? 'Refere movimentação fetal presente e diária.'
+    : 'Nega movimentação fetal.';
+  
+  const outrosAlarme = document.getElementById('s-outros-alarme').checked
+    ? document.getElementById('s-outros-alarme-text').value
+    : '';
+  
+  const queixasAdicionais = document.getElementById('s-queixas-adicionais').value;
+  
+  let textoSubjetivo = `S.\nGestante comparece para consulta de pré-natal com IG de ${document.getElementById('consulta-ig-atual').textContent}. `;
+  
+  if (sintomas.length > 0) {
+    textoSubjetivo += `Refere ${sintomas.join(', ')}. `;
+  } else {
+    textoSubjetivo += 'Refere estar bem, nega queixas no momento. ';
+  }
+  
+  if (negativos.length > 0) {
+    textoSubjetivo += `Nega ${negativos.join(', ')}. `;
+  }
+  
+  textoSubjetivo += movFetal;
+  
+  if (outrosAlarme) {
+    textoSubjetivo += ` ${outrosAlarme}`;
+  }
+  
+  if (queixasAdicionais) {
+    textoSubjetivo += ` ${queixasAdicionais}`;
+  }
+  
+  // OBJETIVO
+  const estadoGeral = document.getElementById('o-beg').checked
+    ? 'BEG LOC MUC AAA\nCorada hidratada eupneica'
+    : document.getElementById('o-beg-custom').value;
+  
+  const paSist = document.getElementById('o-pa-sist').value;
+  const paDiast = document.getElementById('o-pa-diast').value;
+  const fc = document.getElementById('o-fc').value;
+  const bcf = document.getElementById('o-bcf').value;
+  const au = document.getElementById('o-au').value;
+  const peso = document.getElementById('o-peso').value;
+  const edema = document.getElementById('o-edema').value;
+  const exames = document.getElementById('o-exames').value;
+  
+  let textoObjetivo = `O.\n${estadoGeral}\n`;
+  if (paSist && paDiast) textoObjetivo += `PA: ${paSist}x${paDiast} mmHg\n`;
+  if (fc) textoObjetivo += `FC: ${fc} bpm\n`;
+  if (bcf) textoObjetivo += `BCF: ${bcf} bpm\n`;
+  if (au) textoObjetivo += `AU: ${au} cm\n`;
+  if (peso) textoObjetivo += `${peso}kg\n`;
+  textoObjetivo += `Edema de MMII: ${edema.toLowerCase()}, panturrilhas livres\n`;
+  if (exames) textoObjetivo += `Exames: ${exames}`;
+  
+  // AVALIAÇÃO
+  const avaliacao = document.getElementById('a-avaliacao').value;
+  const textoAvaliacao = `A.\n${avaliacao}`;
+  
+  // PLANO
+  const plano = document.getElementById('plano').value;
+  const textoPlano = `P.\n${plano}`;
+  
+  // Texto completo
+  const textoCompleto = `${textoMedicamentos}${textoSubjetivo}\n\n${textoObjetivo}\n\n${textoAvaliacao}\n\n${textoPlano}`;
+  
+  return {
+    medicamentos: textoMedicamentos,
+    subjetivo: textoSubjetivo,
+    objetivo: textoObjetivo,
+    avaliacao: textoAvaliacao,
+    plano: textoPlano,
+    completo: textoCompleto
+  };
+}
+
 // Configurar ambos os formulários
 setupConsultaForm('form-abertura', 'abertura');
-setupConsultaForm('form-seguimento', 'seguimento');
+setupConsultaFormSeguimento();
 
 // ========================================
 // COPIAR TEXTO CELK
@@ -851,6 +1055,61 @@ function fillConsultaWithGestanteData() {
   
   // Preencher campo hidden do form
   document.getElementById('seguimento-id-gestante').value = currentGestante.id_gestante;
+  
+  // Preencher data automática com hoje
+  const hoje = new Date();
+  const dia = String(hoje.getDate()).padStart(2, '0');
+  const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+  const ano = hoje.getFullYear();
+  document.getElementById('data-consulta-auto').value = `${dia}/${mes}/${ano}`;
+  
+  // Carregar pendências de exames
+  loadPendenciasExames();
+}
+
+// Carregar pendências de exames por IG
+async function loadPendenciasExames() {
+  if (!currentGestante || !currentGestante.id_gestante) return;
+  
+  try {
+    const result = await apiCall({ action: 'getPendencias', id: currentGestante.id_gestante });
+    if (result.ok && result.data && result.data.length > 0) {
+      const pendencias = result.data.filter(p => p.tipo === 'EXAME');
+      if (pendencias.length > 0) {
+        document.getElementById('pendencias-exames').textContent = pendencias.map(p => p.descricao).join(', ');
+      } else {
+        document.getElementById('pendencias-exames').textContent = 'Nenhuma pendência de exames no momento.';
+      }
+    } else {
+      document.getElementById('pendencias-exames').textContent = 'Nenhuma pendência de exames no momento.';
+    }
+  } catch (error) {
+    document.getElementById('pendencias-exames').textContent = 'Erro ao carregar pendências.';
+  }
+}
+
+// Toggle para outros sinais de alarme
+function toggleOtrosAlarme() {
+  const checkbox = document.getElementById('s-outros-alarme');
+  const textarea = document.getElementById('s-outros-alarme-text');
+  if (checkbox.checked) {
+    textarea.classList.remove('hidden');
+  } else {
+    textarea.classList.add('hidden');
+    textarea.value = '';
+  }
+}
+
+// Toggle para BEG
+function toggleBEG() {
+  const checkbox = document.getElementById('o-beg');
+  const textarea = document.getElementById('o-beg-custom');
+  if (!checkbox.checked) {
+    textarea.classList.remove('hidden');
+  } else {
+    textarea.classList.add('hidden');
+    textarea.value = '';
+  }
 }
 
 // Editar gestante
