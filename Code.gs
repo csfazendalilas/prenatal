@@ -242,17 +242,61 @@ function searchGestantes(term) {
         obj[header] = row[idx];
       });
       
-      // Formatar datas
-      if (obj.dum instanceof Date) obj.dum = formatDateBR(obj.dum);
+      const dnDate = obj.dn;
+      const dumDate = obj.dum;
+      
+      // Calcular idade
+      if (dnDate instanceof Date) {
+        obj.idade = calcularIdade(dnDate);
+        obj.dn = formatDateBR(dnDate);
+      }
+      
+      // Calcular IG
+      if (dumDate instanceof Date) {
+        const ig = calculateIG(dumDate);
+        obj.ig_formatada = ig.formatted;
+        obj.ig_dum_num = ig.weeks;
+        obj.trimestre = calculateTrimester(ig.weeks, ig.days);
+        obj.dum = formatDateBR(dumDate);
+      }
+      
+      // Formatar outras datas
       if (obj.dpp_usg instanceof Date) obj.dpp_usg = formatDateBR(obj.dpp_usg);
       if (obj.created_at instanceof Date) obj.created_at = obj.created_at.toISOString();
       if (obj.updated_at instanceof Date) obj.updated_at = obj.updated_at.toISOString();
+      
+      // Buscar dados do monitoramento
+      const monit = getMonitoramento(idGestante);
+      if (monit) {
+        obj.ultima_consulta_em = monit.ultima_consulta_em;
+        obj.ultimo_atendimento_por = monit.ultimo_atendimento_por;
+        obj.retorno_em = monit.retorno_em;
+      }
       
       results.push(obj);
     }
   }
   
   return results;
+}
+
+// Função auxiliar para buscar dados do monitoramento
+function getMonitoramento(idGestante) {
+  const sheet = getSheet('MonitoramentoPN');
+  const data = sheet.getDataRange().getValues();
+  
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    // Última coluna é id_gestante
+    if (row[row.length - 1] === idGestante) {
+      return {
+        ultima_consulta_em: row[0] instanceof Date ? formatDateBR(row[0]) : row[0],
+        ultimo_atendimento_por: row[1],
+        retorno_em: row[17] instanceof Date ? formatDateBR(row[17]) : row[17]
+      };
+    }
+  }
+  return null;
 }
 
 function getGestante(idGestante) {

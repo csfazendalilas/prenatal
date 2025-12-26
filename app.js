@@ -864,10 +864,12 @@ async function editGestante(idGestante) {
       const g = result.data;
       document.getElementById('edit-id-gestante').value = g.id_gestante;
       document.getElementById('edit-nome').value = g.nome || '';
-      document.getElementById('edit-dn').value = g.dn || '';
+      
+      // Formatar datas se necessário (pode vir em formato ISO do backend)
+      document.getElementById('edit-dn').value = formatDateForInput(g.dn);
       document.getElementById('edit-telefone').value = g.telefone || '';
-      document.getElementById('edit-dum').value = g.dum || '';
-      document.getElementById('edit-dpp-usg').value = g.dpp_usg || '';
+      document.getElementById('edit-dum').value = formatDateForInput(g.dum);
+      document.getElementById('edit-dpp-usg').value = formatDateForInput(g.dpp_usg);
       document.getElementById('edit-risco').value = g.risco || 'HABITUAL';
       document.getElementById('edit-observacoes').value = g.observacoes || '';
       
@@ -877,6 +879,37 @@ async function editGestante(idGestante) {
     hideLoading();
     showToast('Erro ao carregar dados da gestante', 'error');
   }
+}
+
+// Formatar data para input (dd/MM/aaaa)
+function formatDateForInput(dateValue) {
+  if (!dateValue) return '';
+  
+  // Se já está em formato dd/MM/aaaa, retorna
+  if (typeof dateValue === 'string' && dateValue.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+    return dateValue;
+  }
+  
+  // Se está em formato ISO (2024-01-15T00:00:00.000Z)
+  if (typeof dateValue === 'string' && dateValue.includes('T')) {
+    const date = new Date(dateValue);
+    if (!isNaN(date.getTime())) {
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+  }
+  
+  // Se é um objeto Date
+  if (dateValue instanceof Date && !isNaN(dateValue.getTime())) {
+    const day = String(dateValue.getDate()).padStart(2, '0');
+    const month = String(dateValue.getMonth() + 1).padStart(2, '0');
+    const year = dateValue.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+  
+  return '';
 }
 
 function closeEditModal() {
