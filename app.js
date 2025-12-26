@@ -577,7 +577,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 // Função para carregar todas as gestantes
 async function loadAllGestantes() {
-  const searchResults = document.getElementById('searchResults');
+  const searchResults = document.getElementById('search-results');
   searchResults.innerHTML = '<div class="text-center py-8 text-gray-500">Carregando gestantes...</div>';
   
   try {
