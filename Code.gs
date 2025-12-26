@@ -5,7 +5,7 @@ const SPREADSHEET_ID = "1D4zN9rcF4-XO-5VT76D7IHjxXCe4x3Gmb2D_MCEuPp0";
 
 // Lista de emails autorizados da equipe
 const AUTHORIZED_EMAILS = [
-  "seu-email@gmail.com",
+  "csfazendalilas@gmail.com",
   "outro-email@gmail.com"
   // Adicione os emails do Gmail da equipe aqui
 ];
