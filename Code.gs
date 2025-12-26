@@ -3,6 +3,17 @@
 // ========================================
 const SPREADSHEET_ID = "1D4zN9rcF4-XO-5VT76D7IHjxXCe4x3Gmb2D_MCEuPp0";
 
+// Lista de emails autorizados (ou domínio)
+// Adicione os emails da equipe aqui
+const AUTHORIZED_EMAILS = [
+  "seu-email@pmf.gov.br",
+  "outro-email@pmf.gov.br"
+  // Adicione mais emails conforme necessário
+];
+
+// Ou use um domínio autorizado (ex: "@pmf.gov.br")
+const AUTHORIZED_DOMAIN = "@pmf.gov.br"; // Deixe vazio "" se quiser usar lista de emails
+
 // ========================================
 // UTILITÁRIOS DE DATA
 // ========================================
@@ -768,14 +779,31 @@ function doPost(e) {
 
 function doOptions(e) {
   // Resposta para preflight CORS
+  // Google Apps Script Web App já lida com CORS automaticamente quando configurado corretamente
   return ContentService
     .createTextOutput('')
-    .setMimeType(ContentService.MimeType.TEXT)
-    .setHeaders({
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
-    });
+    .setMimeType(ContentService.MimeType.TEXT);
+}
+
+// Função para verificar autenticação
+function checkAuth() {
+  const userEmail = Session.getActiveUser().getEmail();
+  
+  if (!userEmail) {
+    return { authorized: false, error: 'Usuário não autenticado' };
+  }
+  
+  // Verifica domínio autorizado
+  if (AUTHORIZED_DOMAIN && userEmail.endsWith(AUTHORIZED_DOMAIN)) {
+    return { authorized: true, email: userEmail };
+  }
+  
+  // Verifica lista de emails autorizados
+  if (AUTHORIZED_EMAILS.length > 0 && AUTHORIZED_EMAILS.includes(userEmail)) {
+    return { authorized: true, email: userEmail };
+  }
+  
+  return { authorized: false, error: 'Acesso não autorizado para: ' + userEmail };
 }
 
 function handleRequest(e) {
@@ -783,9 +811,21 @@ function handleRequest(e) {
     const params = e.parameter || {};
     const action = params.action;
     
-    // Se não tem action, retorna health check
+    // Health check não precisa de autenticação
     if (!action || action === 'health') {
       return jsonResponse({ ok: true, message: 'API Online', version: '1.0' });
+    }
+    
+    // Verificar autenticação para todas as outras ações
+    const auth = checkAuth();
+    if (!auth.authorized) {
+      return jsonResponse({ ok: false, error: auth.error, needsAuth: true });
+    }
+    
+    if (action === 'listGestantes') {
+      // Lista todas as gestantes (sem filtro)
+      const results = searchGestantes('');
+      return jsonResponse({ ok: true, data: results });
     }
     
     if (action === 'searchGestantes') {
@@ -842,7 +882,7 @@ function handleRequest(e) {
       ok: false, 
       error: 'Ação não reconhecida',
       action: action || 'não fornecida',
-      availableActions: ['health', 'searchGestantes', 'getGestante', 'createGestante', 'saveConsulta', 'getOrientacoesPorIG', 'getPendencias']
+      availableActions: ['health', 'listGestantes', 'searchGestantes', 'getGestante', 'createGestante', 'saveConsulta', 'getOrientacoesPorIG', 'getPendencias']
     });
     
   } catch (error) {
@@ -851,14 +891,11 @@ function handleRequest(e) {
 }
 
 function jsonResponse(obj) {
+  // Google Apps Script Web App já permite CORS quando configurado como "Qualquer pessoa"
+  // Não precisa de setHeaders() - ContentService não suporta isso
   return ContentService
     .createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON)
-    .setHeaders({
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
-    });
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 // ========================================

@@ -556,16 +556,97 @@ function copyCelk(tipoConsulta) {
 }
 
 // ========================================
-// HEALTH CHECK (opcional, ao carregar)
+// INICIALIZAÇÃO
 // ========================================
 window.addEventListener('DOMContentLoaded', async () => {
   try {
-    const result = await apiCall({ action: 'health' });
-    if (result.ok) {
-      console.log('✅ API Online:', result.message);
+    // Verificar se API está online
+    const healthCheck = await apiCall({ action: 'health' });
+    if (healthCheck.ok) {
+      console.log('✅ API Online:', healthCheck.message);
     }
+    
+    // Carregar lista de gestantes automaticamente
+    await loadAllGestantes();
+    
   } catch (error) {
-    console.error('❌ API Offline ou inacessível');
+    console.error('❌ Erro ao inicializar:', error);
     showToast('Atenção: API pode estar offline', 'error');
   }
 });
+
+// Função para carregar todas as gestantes
+async function loadAllGestantes() {
+  const searchResults = document.getElementById('searchResults');
+  searchResults.innerHTML = '<div class="text-center py-8 text-gray-500">Carregando gestantes...</div>';
+  
+  try {
+    const result = await apiCall({ action: 'listGestantes' });
+    
+    if (!result.ok) {
+      if (result.needsAuth) {
+        searchResults.innerHTML = `
+          <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+            <svg class="w-16 h-16 text-red-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            </svg>
+            <h3 class="text-lg font-semibold text-red-800 mb-2">Acesso Restrito</h3>
+            <p class="text-red-600 mb-4">${result.error}</p>
+            <p class="text-sm text-red-500">Por favor, faça login com sua conta autorizada da equipe.</p>
+          </div>
+        `;
+        return;
+      }
+      throw new Error(result.error);
+    }
+    
+    const gestantes = result.data || [];
+    
+    if (gestantes.length === 0) {
+      searchResults.innerHTML = `
+        <div class="text-center py-8">
+          <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+          </svg>
+          <p class="text-gray-500 text-lg">Nenhuma gestante cadastrada</p>
+          <p class="text-gray-400 text-sm mt-2">Clique em "Cadastrar" para adicionar a primeira gestante</p>
+        </div>
+      `;
+      return;
+    }
+    
+    searchResults.innerHTML = gestantes.map(g => `
+      <div class="bg-white border rounded-lg p-4 hover:shadow-md transition cursor-pointer" 
+           onclick="selectGestante('${g.id_gestante}')">
+        <div class="flex justify-between items-start mb-2">
+          <h3 class="font-semibold text-lg">${g.nome}</h3>
+          <span class="px-2 py-1 text-xs rounded ${
+            g.risco === 'ALTO RISCO' 
+              ? 'bg-red-100 text-red-700' 
+              : 'bg-green-100 text-green-700'
+          }">
+            ${g.risco || 'Habitual'}
+          </span>
+        </div>
+        <div class="text-sm text-gray-600 space-y-1">
+          <p><strong>ID:</strong> ${g.id_gestante}</p>
+          ${g.idade ? `<p><strong>Idade:</strong> ${g.idade} anos</p>` : ''}
+          ${g.ig_formatada ? `<p><strong>IG:</strong> ${g.ig_formatada}</p>` : ''}
+          ${g.trimestre ? `<p><strong>Trimestre:</strong> ${g.trimestre}</p>` : ''}
+          ${g.dpp_usg ? `<p><strong>DPP:</strong> ${g.dpp_usg}</p>` : ''}
+          ${g.retorno_em ? `<p><strong>Retorno:</strong> ${g.retorno_em}</p>` : ''}
+        </div>
+      </div>
+    `).join('');
+    
+    console.log(`✅ ${gestantes.length} gestante(s) carregada(s)`);
+    
+  } catch (error) {
+    console.error('Erro ao carregar gestantes:', error);
+    searchResults.innerHTML = `
+      <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+        <p class="text-yellow-800">Erro ao carregar gestantes: ${error.message}</p>
+      </div>
+    `;
+  }
+}
