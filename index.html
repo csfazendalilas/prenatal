@@ -80,7 +80,7 @@
     <div class="bg-white rounded-lg shadow-sm mb-6">
       <nav class="flex border-b overflow-x-auto">
         <button id="tab-buscar" class="px-6 py-3 tab-active whitespace-nowrap" onclick="switchTab('buscar')">
-          🔍 Buscar Gestante
+          📋 Monitoramento
         </button>
         <button id="tab-cadastrar" class="px-6 py-3 tab-inactive whitespace-nowrap" onclick="switchTab('cadastrar')">
           ➕ Cadastrar Gestante
@@ -94,31 +94,49 @@
       </nav>
     </div>
 
-    <!-- Tab Content: Buscar -->
+    <!-- Tab Content: Monitoramento (Lista tipo planilha) -->
     <div id="content-buscar" class="tab-content">
       <div class="bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-xl font-semibold mb-4">Buscar Gestante</h2>
-        
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-2">Digite nome ou ID</label>
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-semibold">Monitoramento de Gestantes</h2>
           <div class="flex gap-2">
             <input 
               type="text" 
               id="search-term" 
-              class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Ex: Maria Silva ou PN-000001"
-              onkeypress="if(event.key==='Enter') searchGestantes()"
+              placeholder="Filtrar por nome..." 
+              class="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              onkeyup="filterMonitoramento()"
             >
-            <button 
-              onclick="searchGestantes()" 
-              class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-            >
-              Buscar
-            </button>
+            <select id="sort-order" class="px-3 py-2 border border-gray-300 rounded-lg text-sm" onchange="sortMonitoramento()">
+              <option value="retorno">Ordenar: Retorno</option>
+              <option value="ultima_consulta">Última Consulta</option>
+              <option value="ig">IG (DUM)</option>
+              <option value="nome">Nome</option>
+            </select>
           </div>
         </div>
-
-        <div id="search-results" class="space-y-3"></div>
+        
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm border-collapse">
+            <thead class="bg-gray-100 sticky top-0">
+              <tr class="text-left border-b-2 border-gray-300">
+                <th class="px-3 py-2 font-semibold whitespace-nowrap">Última Consulta</th>
+                <th class="px-3 py-2 font-semibold whitespace-nowrap">Nome</th>
+                <th class="px-3 py-2 font-semibold whitespace-nowrap">Idade</th>
+                <th class="px-3 py-2 font-semibold whitespace-nowrap">IG (DUM)</th>
+                <th class="px-3 py-2 font-semibold whitespace-nowrap">Trimestre</th>
+                <th class="px-3 py-2 font-semibold whitespace-nowrap">DPP (USG)</th>
+                <th class="px-3 py-2 font-semibold whitespace-nowrap">Risco</th>
+                <th class="px-3 py-2 font-semibold whitespace-nowrap">Retorno em</th>
+                <th class="px-3 py-2 font-semibold whitespace-nowrap">Profissional</th>
+                <th class="px-3 py-2 font-semibold whitespace-nowrap">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="search-results" class="divide-y divide-gray-200">
+              <!-- Preenchido via JS -->
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 

@@ -654,10 +654,13 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-// Função para carregar todas as gestantes
+// Variável global para armazenar gestantes
+let allGestantes = [];
+
+// Função para carregar todas as gestantes (formato tabela)
 async function loadAllGestantes() {
-  const searchResults = document.getElementById('search-results');
-  searchResults.innerHTML = '<div class="text-center py-8 text-gray-500">Carregando gestantes...</div>';
+  const tbody = document.getElementById('search-results');
+  tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-gray-500">Carregando gestantes...</td></tr>';
   
   try {
     const result = await apiCall({ action: 'listGestantes' });
@@ -665,59 +668,135 @@ async function loadAllGestantes() {
     if (!result.ok) {
       if (result.needsAuth) {
         showLoginScreen();
-        searchResults.innerHTML = '<div class="text-center py-8 text-gray-400">Faça login para continuar...</div>';
+        tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-gray-400">Faça login para continuar...</td></tr>';
         return;
       }
       throw new Error(result.error);
     }
     
-    const gestantes = result.data || [];
+    allGestantes = result.data || [];
     
-    if (gestantes.length === 0) {
-      searchResults.innerHTML = `
-        <div class="text-center py-8">
-          <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-          </svg>
-          <p class="text-gray-500 text-lg">Nenhuma gestante cadastrada</p>
-          <p class="text-gray-400 text-sm mt-2">Clique em "Cadastrar" para adicionar a primeira gestante</p>
-        </div>
+    if (allGestantes.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="10" class="text-center py-8">
+            <p class="text-gray-500 text-lg">Nenhuma gestante cadastrada</p>
+            <p class="text-gray-400 text-sm mt-2">Clique em "Cadastrar" para adicionar</p>
+          </td>
+        </tr>
       `;
       return;
     }
     
-    searchResults.innerHTML = gestantes.map(g => `
-      <div class="bg-white border rounded-lg p-4 hover:shadow-md transition cursor-pointer" 
-           onclick="selectGestante('${g.id_gestante}')">
-        <div class="flex justify-between items-start mb-2">
-          <h3 class="font-semibold text-lg">${g.nome}</h3>
-          <span class="px-2 py-1 text-xs rounded ${
-            g.risco === 'ALTO RISCO' 
-              ? 'bg-red-100 text-red-700' 
-              : 'bg-green-100 text-green-700'
-          }">
-            ${g.risco || 'Habitual'}
-          </span>
-        </div>
-        <div class="text-sm text-gray-600 space-y-1">
-          <p><strong>ID:</strong> ${g.id_gestante}</p>
-          ${g.idade ? `<p><strong>Idade:</strong> ${g.idade} anos</p>` : ''}
-          ${g.ig_formatada ? `<p><strong>IG:</strong> ${g.ig_formatada}</p>` : ''}
-          ${g.trimestre ? `<p><strong>Trimestre:</strong> ${g.trimestre}</p>` : ''}
-          ${g.dpp_usg ? `<p><strong>DPP:</strong> ${g.dpp_usg}</p>` : ''}
-          ${g.retorno_em ? `<p><strong>Retorno:</strong> ${g.retorno_em}</p>` : ''}
-        </div>
-      </div>
-    `).join('');
-    
-    console.log(`✅ ${gestantes.length} gestante(s) carregada(s)`);
+    renderMonitoramentoTable();
+    console.log(`✅ ${allGestantes.length} gestante(s) carregada(s)`);
     
   } catch (error) {
     console.error('Erro ao carregar gestantes:', error);
-    searchResults.innerHTML = `
-      <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
-        <p class="text-yellow-800">Erro ao carregar gestantes: ${error.message}</p>
-      </div>
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="10" class="text-center py-4">
+          <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 inline-block">
+            <p class="text-yellow-800">Erro ao carregar gestantes: ${error.message}</p>
+          </div>
+        </td>
+      </tr>
     `;
+  }
+}
+
+// Renderizar tabela de monitoramento
+function renderMonitoramentoTable(gestantes = allGestantes) {
+  const tbody = document.getElementById('search-results');
+  
+  if (!gestantes || gestantes.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-gray-400">Nenhuma gestante encontrada</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = gestantes.map(g => {
+    const hoje = new Date();
+    const retorno = g.retorno_em ? parseDateBR(g.retorno_em) : null;
+    const atrasado = retorno && retorno < hoje;
+    
+    return `
+      <tr class="hover:bg-gray-50 cursor-pointer ${atrasado ? 'bg-red-50' : ''}" onclick="openConsultaForGestante('${g.id_gestante}')">
+        <td class="px-3 py-3">${g.ultima_consulta_em || '-'}</td>
+        <td class="px-3 py-3 font-medium">${g.nome}</td>
+        <td class="px-3 py-3">${g.idade || '-'}</td>
+        <td class="px-3 py-3">${g.ig_formatada || '-'}</td>
+        <td class="px-3 py-3">
+          <span class="px-2 py-1 rounded text-xs ${
+            g.trimestre === '1T' ? 'bg-blue-100 text-blue-700' :
+            g.trimestre === '2T' ? 'bg-green-100 text-green-700' :
+            g.trimestre === '3T' ? 'bg-purple-100 text-purple-700' : ''
+          }">${g.trimestre || '-'}</span>
+        </td>
+        <td class="px-3 py-3">${g.dpp_usg || '-'}</td>
+        <td class="px-3 py-3">
+          <span class="px-2 py-1 rounded text-xs ${
+            g.risco === 'ALTO RISCO' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+          }">${g.risco || 'Habitual'}</span>
+        </td>
+        <td class="px-3 py-3 ${atrasado ? 'text-red-600 font-semibold' : ''}">
+          ${g.retorno_em || '-'}
+          ${atrasado ? '<br><span class="text-xs">⚠️ ATRASADO</span>' : ''}
+        </td>
+        <td class="px-3 py-3">${g.ultimo_atendimento_por || '-'}</td>
+        <td class="px-3 py-3">
+          <button 
+            onclick="event.stopPropagation(); openConsultaForGestante('${g.id_gestante}')" 
+            class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs"
+          >
+            Consulta
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// Filtrar tabela
+function filterMonitoramento() {
+  const term = document.getElementById('search-term').value.toLowerCase();
+  const filtered = allGestantes.filter(g => 
+    g.nome.toLowerCase().includes(term) || 
+    g.id_gestante.toLowerCase().includes(term)
+  );
+  renderMonitoramentoTable(filtered);
+}
+
+// Ordenar tabela
+function sortMonitoramento() {
+  const order = document.getElementById('sort-order').value;
+  const sorted = [...allGestantes].sort((a, b) => {
+    if (order === 'nome') return a.nome.localeCompare(b.nome);
+    if (order === 'ig') return (b.ig_dum_num || 0) - (a.ig_dum_num || 0);
+    if (order === 'ultima_consulta') {
+      const dateA = a.ultima_consulta_em ? parseDateBR(a.ultima_consulta_em) : new Date(0);
+      const dateB = b.ultima_consulta_em ? parseDateBR(b.ultima_consulta_em) : new Date(0);
+      return dateB - dateA;
+    }
+    if (order === 'retorno') {
+      const dateA = a.retorno_em ? parseDateBR(a.retorno_em) : new Date(9999, 11, 31);
+      const dateB = b.retorno_em ? parseDateBR(b.retorno_em) : new Date(9999, 11, 31);
+      return dateA - dateB;
+    }
+    return 0;
+  });
+  renderMonitoramentoTable(sorted);
+}
+
+// Abrir consulta para uma gestante específica
+async function openConsultaForGestante(idGestante) {
+  try {
+    const result = await apiCall({ action: 'getGestante', id: idGestante });
+    if (result.ok) {
+      currentGestante = result.data;
+      switchTab('seguimento');
+      fillConsultaWithGestanteData();
+    }
+  } catch (error) {
+    showToast('Erro ao carregar dados da gestante', 'error');
   }
 }
